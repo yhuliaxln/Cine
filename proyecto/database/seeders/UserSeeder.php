@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Empleado Taquilla',
                 'password' => Hash::make('password123'),
-                'role'     => 'employee',
+                'role'     => 'empleado',
             ]
         );
 

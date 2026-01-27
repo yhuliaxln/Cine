@@ -249,7 +249,7 @@ export default function AdminSalas() {
 
   // Navegación a otras páginas
   const goToDashboard = () => {
-    navigate('/admin/dashboard');
+    navigate('/admin');
   };
 
   const goToPeliculas = () => {

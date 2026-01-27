@@ -200,7 +200,7 @@ export default function AdminPeliculas() {
 
   // Navegación a otras páginas
   const goToDashboard = () => {
-    navigate('/admin/dashboard');
+    navigate('/admin');
   };
 
   const goToSalas = () => {

@@ -6,6 +6,7 @@ import Login from './pages/Login.jsx';
 import DashboardEmpleado from './pages/DashboardEmpleado.jsx'; // ← AJUSTA ESTA LÍNEA SI ES NECESARIO
 import VentaTicket from './pages/VentaTicket.jsx';
 import DashboardAdmin from './pages/DashboardAdmin.jsx';
+import AdminPeliculas from './pages/AdminPeliculas.jsx';
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/empleado" element={<DashboardEmpleado />} />
         <Route path="/venta/:id" element={<VentaTicket />} />
         <Route path="/admin" element={<DashboardAdmin />} />
+        <Route path="/admin/peliculas" element={<AdminPeliculas />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

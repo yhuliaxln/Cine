@@ -3,22 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import AdminLayout from '../components/admin/AdminLayout';
 import PeliculaModal from '../components/modals/PeliculaModal';
+import useCRUD from '../Hooks/useCRUD';
 
 export default function AdminPeliculas() {
-  const [peliculas, setPeliculas] = useState([]);
+  const { 
+    items: peliculas, 
+    loading: peliculasLoading, 
+    error: peliculasError, 
+    fetchAll: cargarPeliculas,
+    remove: eliminarPelicula
+  } = useCRUD('/peliculas');
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   // Modal crear/editar película
   const [showModalPelicula, setShowModalPelicula] = useState(false);
-  const [modalType, setModalType] = useState('crear'); // 'crear' o 'editar'
+  const [modalType, setModalType] = useState('crear');
   const [peliculaEditando, setPeliculaEditando] = useState(null);
-
-  const cargarPeliculas = async () => {
-    const res = await api.get('/peliculas');
-    setPeliculas(res.data);
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,8 +50,7 @@ export default function AdminPeliculas() {
   const handleEliminarPelicula = async (id) => {
     if (window.confirm('¿Estás seguro de eliminar esta película?')) {
       try {
-        await api.delete(`/peliculas/${id}`);
-        cargarPeliculas();
+        await eliminarPelicula(id);
       } catch (error) {
         console.error('Error al eliminar película:', error);
       }
@@ -66,8 +68,8 @@ export default function AdminPeliculas() {
     cargarPeliculas();
   };
 
-  if (loading) return <div style={styles.center}>Cargando películas...</div>;
-  if (error) return <div style={{ ...styles.center, color: 'red' }}>{error}</div>;
+  if (loading || peliculasLoading) return <div style={styles.center}>Cargando películas...</div>;
+  if (error || peliculasError) return <div style={{ ...styles.center, color: 'red' }}>{error || peliculasError}</div>;
 
   return (
     <AdminLayout
@@ -87,21 +89,45 @@ export default function AdminPeliculas() {
           peliculas.map((pelicula) => (
             <div key={pelicula.id} style={styles.peliculaCard}>
               <div style={styles.cardHeader}>
-                {pelicula.url_poster ? (
-                  <img 
-                    src={pelicula.url_poster} 
-                    alt={pelicula.titulo} 
-                    style={styles.poster}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/80x120?text=No+Image';
-                    }}
-                  />
-                ) : (
-                  <div style={styles.posterPlaceholder}>
-                    🎬
-                  </div>
-                )}
+                <div style={styles.posterContainer}>
+                  {pelicula.url_poster ? (
+                    <>
+                      <img 
+                        src={pelicula.url_poster} 
+                        alt={pelicula.titulo} 
+                        style={styles.poster}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      {/* Placeholder que se muestra si la imagen falla */}
+                      <div 
+                        style={{
+                          ...styles.posterPlaceholder,
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          display: 'none'
+                        }}
+                        ref={(el) => {
+                          if (el) {
+                            const img = el.previousSibling;
+                            if (img && img.style.display === 'none') {
+                              el.style.display = 'flex';
+                            }
+                          }
+                        }}
+                      >
+                        🎬
+                      </div>
+                    </>
+                  ) : (
+                    <div style={styles.posterPlaceholder}>
+                      🎬
+                    </div>
+                  )}
+                </div>
                 <div style={styles.cardHeaderInfo}>
                   <h3 style={styles.peliculaTitulo}>{pelicula.titulo}</h3>
                   <div style={styles.badges}>
@@ -216,12 +242,19 @@ const styles = {
     gap: '16px',
     alignItems: 'flex-start'
   },
+  posterContainer: {
+    position: 'relative',
+    width: '80px',
+    height: '120px'
+  },
   poster: {
     width: '80px',
     height: '120px',
     borderRadius: '8px',
     objectFit: 'cover',
-    backgroundColor: '#e5e7eb'
+    backgroundColor: '#e5e7eb',
+    position: 'relative',
+    zIndex: 1
   },
   posterPlaceholder: {
     width: '80px',
@@ -231,7 +264,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '32px'
+    fontSize: '32px',
+    position: 'relative',
+    zIndex: 0
   },
   cardHeaderInfo: {
     flex: 1

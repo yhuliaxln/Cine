@@ -7,7 +7,7 @@ export default function NavBar() {
   const location = useLocation();
   
   const navItems = [
-    { path: '/admin/dashboard', label: ' Inicio', icon: '🏠' },
+    { path: '/admin', label: ' Inicio', icon: '🏠' },
     { path: '/admin/peliculas', label: ' Películas', icon: '🎬' },
     { path: '/admin/salas', label: ' Salas', icon: '🎭' },
     { path: '/admin/usuarios', label: ' Usuarios', icon: '👥' },

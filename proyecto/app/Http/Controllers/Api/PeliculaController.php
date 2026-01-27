@@ -12,7 +12,14 @@ class PeliculaController extends Controller
 {
     public function index(): JsonResponse
     {
-        $peliculas = Pelicula::all();
+        $peliculas = Pelicula::all()->map(function ($pelicula) {
+            // Convertir ruta relativa a URL completa
+            if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
+                $pelicula->url_poster = asset($pelicula->url_poster);
+            }
+            return $pelicula;
+        });
+
         return response()->json($peliculas);
     }
 
@@ -25,27 +32,34 @@ class PeliculaController extends Controller
             'genero'        => 'required|string|max:100',
             'fecha_estreno' => 'nullable|date',
             'clasificacion' => 'nullable|string|max:10',
-            // Acepta archivo O URL string
-            'url_poster'    => 'nullable', // quitamos reglas estrictas aquí
+            'url_poster'    => 'nullable',
         ]);
 
         // Manejo de url_poster (archivo o string)
         if ($request->hasFile('url_poster') && $request->file('url_poster')->isValid()) {
             $path = $request->file('url_poster')->store('posters', 'public');
-            $validated['url_poster'] = Storage::url($path);
+            $validated['url_poster'] = Storage::url($path); // ruta relativa
         } elseif ($request->filled('url_poster')) {
-            // Si viene como string (URL externa), lo dejamos pasar
             $validated['url_poster'] = $request->input('url_poster');
         }
 
-        // Si no viene nada, queda null (como permite la migración)
         $pelicula = Pelicula::create($validated);
+
+        // Convertir a URL completa antes de devolver
+        if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
+            $pelicula->url_poster = asset($pelicula->url_poster);
+        }
 
         return response()->json($pelicula, 201);
     }
 
     public function show(Pelicula $pelicula): JsonResponse
     {
+        // Convertir a URL completa
+        if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
+            $pelicula->url_poster = asset($pelicula->url_poster);
+        }
+
         return response()->json($pelicula);
     }
 
@@ -61,7 +75,7 @@ class PeliculaController extends Controller
             'url_poster'    => 'nullable',
         ]);
 
-        // Mismo manejo que en store
+        // Manejo de url_poster (archivo o string)
         if ($request->hasFile('url_poster') && $request->file('url_poster')->isValid()) {
             $path = $request->file('url_poster')->store('posters', 'public');
             $validated['url_poster'] = Storage::url($path);
@@ -70,6 +84,11 @@ class PeliculaController extends Controller
         }
 
         $pelicula->update($validated);
+
+        // Convertir a URL completa antes de devolver
+        if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
+            $pelicula->url_poster = asset($pelicula->url_poster);
+        }
 
         return response()->json($pelicula);
     }

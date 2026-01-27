@@ -14,23 +14,30 @@ Route::post('/login', [AuthController::class, 'login']);
 // Rutas protegidas: requieren token Sanctum (auth:sanctum)
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Logout (revoca el token actual)
+    // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Funciones: GET visible para empleados y admin (cartelera), POST/PUT/DELETE solo admin
+    // Funciones: GET visible para empleados y admin
     Route::get('/funciones', [FuncionController::class, 'index']);
     Route::get('/funciones/{funcione}', [FuncionController::class, 'show']);
 
-    // Crear, actualizar y eliminar funciones solo admin
+    // Asientos: GET visible para empleados y admin (para ver en venta)
+    Route::get('/asientos', [AsientoController::class, 'index']);
+    Route::get('/asientos/{asiento}', [AsientoController::class, 'show']);
+
+    // Crear, actualizar y eliminar funciones, películas, salas y asientos SOLO admin
     Route::middleware('role:admin')->group(function () {
         Route::post('/funciones', [FuncionController::class, 'store']);
         Route::put('/funciones/{funcione}', [FuncionController::class, 'update']);
         Route::delete('/funciones/{funcione}', [FuncionController::class, 'destroy']);
 
-        // Películas, salas y asientos solo admin
         Route::apiResource('peliculas', PeliculaController::class);
         Route::apiResource('salas', SalaController::class);
-        Route::apiResource('asientos', AsientoController::class);
+
+        // Solo escritura de asientos para admin
+        Route::post('/asientos', [AsientoController::class, 'store']);
+        Route::put('/asientos/{asiento}', [AsientoController::class, 'update']);
+        Route::delete('/asientos/{asiento}', [AsientoController::class, 'destroy']);
     });
 
     // Tickets: accesible para empleados y admin

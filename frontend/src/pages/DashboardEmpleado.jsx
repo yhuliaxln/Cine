@@ -1,77 +1,179 @@
 // src/pages/DashboardEmpleado.jsx
-import { useEffect, useState } from 'react';
-import api from '../services/api';  // ← CAMBIA ESTO si tu services está en otro lugar
+import { useState, useEffect } from 'react';
+import api from '../services/api';
+import PeliculaCard from '../components/PeliculaCard';
 
-export default function DashboardEmpleadoPage() {
-  const [funcionesHoy, setFuncionesHoy] = useState([]);
+export default function DashboardEmpleado() {
+  const [funciones, setFunciones] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const BACKEND_URL = 'http://localhost:8000';
 
   useEffect(() => {
-    const fetchCarteleraHoy = async () => {
+    const fetchData = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-        const response = await api.get(`/funciones?fecha=${today}`);
-        setFuncionesHoy(response.data);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = '/login';
+          return;
+        }
+
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const res = await api.get('/funciones');
+        setFunciones(res.data);
       } catch (err) {
-        setError(err.response?.data?.message || 'Error al cargar la cartelera del día');
+        setError('Error al cargar las funciones');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCarteleraHoy();
+    fetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-xl text-gray-600">Cargando cartelera...</p>
-      </div>
-    );
-  }
+  const handleLogout = async () => {
+    try {
+      await api.post('/logout');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+  };
 
-  if (error) {
+  if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-xl text-red-600">{error}</p>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '20px',
+        }}
+      >
+        Cargando cartelera...
       </div>
     );
-  }
+
+  if (error)
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '20px',
+          color: 'red',
+        }}
+      >
+        {error}
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Dashboard Empleado - Cartelera del Día</h1>
+    // 🔴 FONDO GRIS FORZADO
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#e5e7eb', // GRIS OFICINA
+      }}
+    >
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: '#1e40af',
+          color: '#fff',
+          padding: '16px',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1280px',
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>
+            Cine - Panel Empleado
+          </h1>
 
-      {funcionesHoy.length === 0 ? (
-        <div className="bg-white p-6 rounded-lg shadow text-center">
-          <p className="text-gray-600 text-lg">No hay funciones programadas para hoy.</p>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <span>Bienvenid@, {user.name || user.email || 'Empleado'}</span>
+            <button
+              onClick={handleLogout}
+              style={{
+                backgroundColor: '#dc2626',
+                color: '#fff',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Cerrar sesión
+            </button>
+          </div>
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {funcionesHoy.map((funcion) => (
-            <div key={funcion.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  {funcion.pelicula?.titulo || 'Película sin título'}
-                </h2>
-                <div className="space-y-2 text-gray-600">
-                  <p><span className="font-medium">Sala:</span> {funcion.sala?.nombre || 'N/A'} ({funcion.sala?.tipo || 'N/A'})</p>
-                  <p><span className="font-medium">Hora:</span> {new Date(funcion.fecha_hora_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                  <p><span className="font-medium">Precio:</span> ${funcion.precio}</p>
-                </div>
+      </header>
 
-                <button
-                  onClick={() => window.location.href = `/venta/${funcion.id}`}
-                  className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Vender Ticket
-                </button>
-              </div>
+      {/* Contenido */}
+      <main
+        style={{
+          maxWidth: '1280px',
+          margin: '0 auto',
+          padding: '32px',
+        }}
+      >
+        {/* PANEL BLANCO */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '32px',
+            boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: '30px',
+              fontWeight: 'bold',
+              marginBottom: '32px',
+            }}
+          >
+            Películas en Cartelera
+          </h2>
+
+          {funciones.length === 0 ? (
+            <p>No hay funciones programadas.</p>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '24px',
+              }}
+            >
+              {funciones.map((funcion) => (
+                <PeliculaCard
+                  key={funcion.id}
+                  funcion={funcion}
+                  BACKEND_URL={BACKEND_URL}
+                />
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
+      </main>
     </div>
   );
 }

@@ -20,12 +20,12 @@ class Ticket extends Model
 
     public function funcion()
     {
-        return $this->belongsTo(Funciones::class);   // ← Funciones (con "es")
+        return $this->belongsTo(Funciones::class);   
     }
 
     public function asiento()
     {
-        return $this->belongsTo(Asientos::class);    // ← Asientos (con "es")
+        return $this->belongsTo(Asientos::class);    
     }
 
     public function usuario()

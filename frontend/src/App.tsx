@@ -1,9 +1,8 @@
-// src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login.jsx';
-import DashboardEmpleado from './pages/DashboardEmpleado.jsx'; // ← AJUSTA ESTA LÍNEA SI ES NECESARIO
+import DashboardEmpleado from './pages/DashboardEmpleado.jsx'; 
 import VentaTicket from './pages/VentaTicket.jsx';
 import DashboardAdmin from './pages/DashboardAdmin.jsx';
 import AdminPeliculas from './pages/AdminPeliculas.jsx';

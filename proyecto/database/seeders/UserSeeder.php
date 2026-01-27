@@ -9,7 +9,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        \App\Models\User::firstOrCreate(  // ← usa namespace completo aquí
+        \App\Models\User::firstOrCreate(
             ['email' => 'admin@cine.com'],
             [
                 'name'     => 'Admin Cine',

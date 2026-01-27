@@ -17,7 +17,7 @@ class Pelicula extends Model
         'fecha_estreno',
         'url_poster',
         'clasificacion',
-        'en_cartelera',   // ← ¡AGREGA ESTO!
+        'en_cartelera',
     ];
 
     public function funciones()

@@ -12,8 +12,8 @@ class Funciones extends Model
     protected $fillable = [
         'pelicula_id',
         'sala_id',
-        'fecha_hora_inicio',   // ← coincide con migración
-        'fecha_hora_fin',      // ← coincide con migración
+        'fecha_hora_inicio',
+        'fecha_hora_fin',      
         'precio',
     ];
 

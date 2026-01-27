@@ -1,3 +1,4 @@
+// src/pages/Login.jsx
 import { useState } from 'react';
 import api from '../services/api';
 
@@ -19,7 +20,6 @@ export default function Login() {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Redirigir según rol
       if (user.role === 'admin') {
         window.location.href = '/admin';
       } else {
@@ -33,55 +33,123 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Cine - Iniciar Sesión
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          {error && <p className="text-red-500 text-center">{error}</p>}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">Email</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Contraseña</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Contraseña"
-              />
-            </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#e5e7eb', // gris oficina
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* CUADRO LOGIN */}
+      <div
+        style={{
+          width: '420px',
+          backgroundColor: '#ffffff',
+          padding: '40px',
+          borderRadius: '12px',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+        }}
+      >
+        <h2
+          style={{
+            textAlign: 'center',
+            fontSize: '28px',
+            fontWeight: '800',
+            marginBottom: '32px',
+            color: '#111827',
+          }}
+        >
+          🎬 Cine – Iniciar Sesión
+        </h2>
+
+        <form onSubmit={handleLogin}>
+          {error && (
+            <p
+              style={{
+                color: '#dc2626',
+                textAlign: 'center',
+                marginBottom: '16px',
+                fontWeight: '500',
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+          {/* EMAIL */}
+          <div style={{ marginBottom: '20px' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '6px',
+                fontWeight: '600',
+              }}
+            >
+              Email
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="correo@ejemplo.com"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '16px',
+              }}
+            />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          {/* PASSWORD */}
+          <div style={{ marginBottom: '28px' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '6px',
+                fontWeight: '600',
+              }}
             >
-              {loading ? 'Cargando...' : 'Ingresar'}
-            </button>
+              Contraseña
+            </label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="********"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '16px',
+              }}
+            />
           </div>
+
+          {/* BOTÓN */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              fontSize: '18px',
+              fontWeight: '700',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+            }}
+          >
+            {loading ? 'Cargando...' : 'Ingresar'}
+          </button>
         </form>
       </div>
     </div>

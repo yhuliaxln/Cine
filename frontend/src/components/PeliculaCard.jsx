@@ -1,4 +1,4 @@
-export default function PeliculaCard({ funcion, BACKEND_URL }) {
+export default function PeliculaCard({ funcion, BACKEND_URL, onVender }) {
   const poster =
     funcion.pelicula?.url_poster
       ? `${BACKEND_URL}${funcion.pelicula.url_poster}`
@@ -14,14 +14,7 @@ export default function PeliculaCard({ funcion, BACKEND_URL }) {
         marginBottom: '24px',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          gap: '32px',
-          alignItems: 'flex-start',
-        }}
-      >
-        {/* IMAGEN */}
+      <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
         <img
           src={poster}
           alt={funcion.pelicula?.titulo || 'Película'}
@@ -29,12 +22,10 @@ export default function PeliculaCard({ funcion, BACKEND_URL }) {
             width: '160px',
             height: '210px',
             objectFit: 'cover',
-            flexShrink: 0,
             borderRadius: '6px',
           }}
         />
 
-        {/* INFO + BOTÓN (MISMO CONTENEDOR) */}
         <div style={{ width: '320px' }}>
           <h2
             style={{
@@ -70,8 +61,8 @@ export default function PeliculaCard({ funcion, BACKEND_URL }) {
             {funcion.pelicula?.clasificacion || 'Sin clasificación'}
           </p>
 
-          {/* BOTÓN PEGADO A LA INFO */}
           <button
+            onClick={() => onVender(funcion.id)}
             style={{
               marginTop: '8px',
               padding: '12px 24px',
@@ -83,9 +74,6 @@ export default function PeliculaCard({ funcion, BACKEND_URL }) {
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
-            }}
-            onClick={() => {
-              alert(`Vender ticket para función ${funcion.id}`);
             }}
           >
             🎟️ Vender ticket

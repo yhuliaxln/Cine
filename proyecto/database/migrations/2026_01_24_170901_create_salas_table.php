@@ -1,4 +1,5 @@
 <?php
+// proyecto/database/migrations/2026_01_24_170807_create_peliculas_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

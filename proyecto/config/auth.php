@@ -41,7 +41,7 @@ return [
             'provider' => 'users',
         ],
     'api' => [
-        'driver' => 'sanctum',  // ← CAMBIA A sanctum (si era token o passport)
+        'driver' => 'token',  // ← CAMBIA A sanctum (si era token o passport)
         'provider' => 'users'
         ]
     ],

@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers; // Cambia el namespace
 
-use App\Http\Controllers\Controller;
 use App\Models\Pelicula;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -10,10 +9,57 @@ use Illuminate\Support\Facades\Storage;
 
 class PeliculaController extends Controller
 {
-    public function index(): JsonResponse
+    /**
+     * Constructor - Aplicar middleware de admin para escritura
+     */
+    public function __construct()
+    {
+        // Solo admin puede crear/editar/eliminar
+        $this->middleware('role:admin')->except(['index', 'ajaxIndex', 'show', 'ajaxShow']);
+    }
+    
+    // ========== VISTAS BLADE ==========
+    
+    /**
+     * Mostrar vista principal de películas
+     */
+    public function index()
+    {
+        return view('peliculas.index');
+    }
+    
+    /**
+     * Mostrar formulario para crear nueva película
+     */
+    public function create()
+    {
+        return view('peliculas.create');
+    }
+    
+    /**
+     * Mostrar formulario para editar película
+     */
+    public function edit(Pelicula $pelicula)
+    {
+        return view('peliculas.edit', compact('pelicula'));
+    }
+    
+    /**
+     * Mostrar detalles de película (vista)
+     */
+    public function show(Pelicula $pelicula)
+    {
+        return view('peliculas.show', compact('pelicula'));
+    }
+    
+    // ========== API PARA AJAX ==========
+    
+    /**
+     * Obtener todas las películas (AJAX)
+     */
+    public function ajaxIndex(): JsonResponse
     {
         $peliculas = Pelicula::all()->map(function ($pelicula) {
-            // Convertir ruta relativa a URL completa
             if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
                 $pelicula->url_poster = asset($pelicula->url_poster);
             }
@@ -23,6 +69,9 @@ class PeliculaController extends Controller
         return response()->json($peliculas);
     }
 
+    /**
+     * Crear nueva película (AJAX)
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -35,27 +84,33 @@ class PeliculaController extends Controller
             'url_poster'    => 'nullable',
         ]);
 
-        // Manejo de url_poster (archivo o string)
+        // Manejo de url_poster
         if ($request->hasFile('url_poster') && $request->file('url_poster')->isValid()) {
             $path = $request->file('url_poster')->store('posters', 'public');
-            $validated['url_poster'] = Storage::url($path); // ruta relativa
+            $validated['url_poster'] = Storage::url($path);
         } elseif ($request->filled('url_poster')) {
             $validated['url_poster'] = $request->input('url_poster');
         }
 
         $pelicula = Pelicula::create($validated);
 
-        // Convertir a URL completa antes de devolver
+        // Convertir a URL completa
         if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
             $pelicula->url_poster = asset($pelicula->url_poster);
         }
 
-        return response()->json($pelicula, 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Película creada exitosamente',
+            'data' => $pelicula
+        ], 201);
     }
 
-    public function show(Pelicula $pelicula): JsonResponse
+    /**
+     * Mostrar una película específica (AJAX)
+     */
+    public function ajaxShow(Pelicula $pelicula): JsonResponse
     {
-        // Convertir a URL completa
         if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
             $pelicula->url_poster = asset($pelicula->url_poster);
         }
@@ -63,6 +118,9 @@ class PeliculaController extends Controller
         return response()->json($pelicula);
     }
 
+    /**
+     * Actualizar película (AJAX)
+     */
     public function update(Request $request, Pelicula $pelicula): JsonResponse
     {
         $validated = $request->validate([
@@ -75,7 +133,7 @@ class PeliculaController extends Controller
             'url_poster'    => 'nullable',
         ]);
 
-        // Manejo de url_poster (archivo o string)
+        // Manejo de url_poster
         if ($request->hasFile('url_poster') && $request->file('url_poster')->isValid()) {
             $path = $request->file('url_poster')->store('posters', 'public');
             $validated['url_poster'] = Storage::url($path);
@@ -85,17 +143,27 @@ class PeliculaController extends Controller
 
         $pelicula->update($validated);
 
-        // Convertir a URL completa antes de devolver
         if ($pelicula->url_poster && !str_starts_with($pelicula->url_poster, 'http')) {
             $pelicula->url_poster = asset($pelicula->url_poster);
         }
 
-        return response()->json($pelicula);
+        return response()->json([
+            'success' => true,
+            'message' => 'Película actualizada exitosamente',
+            'data' => $pelicula
+        ]);
     }
 
+    /**
+     * Eliminar película (AJAX)
+     */
     public function destroy(Pelicula $pelicula): JsonResponse
     {
         $pelicula->delete();
-        return response()->json(null, 204);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Película eliminada exitosamente'
+        ]);
     }
 }

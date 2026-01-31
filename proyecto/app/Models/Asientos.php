@@ -1,5 +1,6 @@
 <?php
 // proyecto/app/Models/Asientos.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;

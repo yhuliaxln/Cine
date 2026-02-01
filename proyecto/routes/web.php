@@ -74,23 +74,32 @@ Route::middleware('auth')->group(function () {
         Route::middleware('role:admin')->group(function () {
             Route::get('/create', [AsientoController::class, 'create'])->name('asientos.create');
             Route::get('/{asiento}/edit', [AsientoController::class, 'edit'])->name('asientos.edit');
+            });
         });
-    });
-    
-    // ----- FUNCIONES -----
-    Route::prefix('funciones')->group(function () {
-        // Todos pueden VER funciones
+        
+        // ----- FUNCIONES -----
+    Route::prefix('funciones')->middleware('auth')->group(function () {
+        // Todos los autenticados (empleados y admin) pueden VER funciones
         Route::get('/', [FuncionController::class, 'index'])->name('funciones.index');
         Route::get('/{funcione}', [FuncionController::class, 'show'])->name('funciones.show');
         
-        // Solo admin puede CREAR/EDITAR
+        // AJAX - Todos autenticados pueden ver
+        Route::get('/', [FuncionController::class, 'ajaxIndex'])->name('funciones.ajax.index');
+        Route::get('/{funcione}', [FuncionController::class, 'ajaxShow'])->name('funciones.ajax.show');
+    
+        // Solo admin puede CREAR/EDITAR/ELIMINAR
         Route::middleware('role:admin')->group(function () {
             Route::get('/create', [FuncionController::class, 'create'])->name('funciones.create');
             Route::get('/{funcione}/edit', [FuncionController::class, 'edit'])->name('funciones.edit');
+            
+            // Rutas AJAX de escritura (POST/PUT/DELETE)
+            Route::post('/', [FuncionController::class, 'store'])->name('funciones.ajax.store');
+            Route::put('/{funcione}', [FuncionController::class, 'update'])->name('funciones.ajax.update');
+            Route::delete('/{funcione}', [FuncionController::class, 'destroy'])->name('funciones.ajax.destroy');
         });
     });
-    
-    // ----- TICKETS (Todos los autenticados) -----
+        
+        // ----- TICKETS (Todos los autenticados) -----
     Route::prefix('tickets')->group(function () {
         Route::get('/', [TicketController::class, 'index'])->name('tickets.index');
         Route::get('/create', [TicketController::class, 'create'])->name('tickets.create');

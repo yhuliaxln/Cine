@@ -1,5 +1,4 @@
 <?php
-// proyecto/app/Http/Controllers/FuncionController.php
 
 namespace App\Http\Controllers;
 
@@ -9,44 +8,25 @@ use Illuminate\Http\JsonResponse;
 
 class FuncionController extends Controller
 {
-    /**
-     * Constructor - Solo admin puede crear/editar/eliminar funciones
-     */
-    public function __construct()
-    {
-        // Todos pueden ver, solo admin modificar
-        $this->middleware('role:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
-    }
-    
+    // ← Eliminamos TODO el __construct() para evitar el error
+
     // ========== VISTAS BLADE ==========
     
-    /**
-     * Mostrar vista principal de funciones
-     */
     public function index()
     {
         return view('funciones.index');
     }
     
-    /**
-     * Mostrar formulario para crear nueva función
-     */
     public function create()
     {
         return view('funciones.create');
     }
     
-    /**
-     * Mostrar formulario para editar función
-     */
     public function edit(Funciones $funcione)
     {
         return view('funciones.edit', compact('funcione'));
     }
     
-    /**
-     * Mostrar detalles de función (vista)
-     */
     public function show(Funciones $funcione)
     {
         return view('funciones.show', compact('funcione'));
@@ -54,9 +34,6 @@ class FuncionController extends Controller
     
     // ========== API PARA AJAX ==========
     
-    /**
-     * Obtener todas las funciones (AJAX)
-     */
     public function ajaxIndex(Request $request): JsonResponse
     {
         $query = Funciones::with(['pelicula', 'sala']);
@@ -76,18 +53,12 @@ class FuncionController extends Controller
         return response()->json($funciones);
     }
 
-    /**
-     * Mostrar una función específica (AJAX)
-     */
     public function ajaxShow(Funciones $funcione): JsonResponse
     {
         $funcione->load(['pelicula', 'sala']);
         return response()->json($funcione);
     }
 
-    /**
-     * Crear nueva función (AJAX)
-     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -107,9 +78,6 @@ class FuncionController extends Controller
         ], 201);
     }
 
-    /**
-     * Actualizar función (AJAX)
-     */
     public function update(Request $request, Funciones $funcione): JsonResponse
     {
         $validated = $request->validate([
@@ -129,9 +97,6 @@ class FuncionController extends Controller
         ]);
     }
 
-    /**
-     * Eliminar función (AJAX)
-     */
     public function destroy(Funciones $funcione): JsonResponse
     {
         $funcione->delete();

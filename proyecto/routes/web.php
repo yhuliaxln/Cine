@@ -8,6 +8,7 @@ use App\Http\Controllers\SalaController;
 use App\Http\Controllers\AsientoController;
 use App\Http\Controllers\FuncionController;
 use App\Http\Controllers\TicketController;
+use App\Models\Funciones;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,12 @@ Route::middleware('auth')->group(function () {
     // ========== DASHBOARD Y LOGOUT ==========
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // RUTA NUEVA PARA EL FORMULARIO DE VENTA (esto soluciona el 404)
+    Route::get('/ventas/ticket/{id}', function ($id) {
+    $funcion = Funciones::with(['pelicula', 'sala'])->findOrFail($id);
+    return view('ventas.venta-ticket', compact('funcion'));
+})->name('ventas.ticket');
     
     // ========== RUTAS PARA VISTAS BLADE ==========
     
@@ -74,10 +81,10 @@ Route::middleware('auth')->group(function () {
         Route::middleware('role:admin')->group(function () {
             Route::get('/create', [AsientoController::class, 'create'])->name('asientos.create');
             Route::get('/{asiento}/edit', [AsientoController::class, 'edit'])->name('asientos.edit');
-            });
         });
-        
-        // ----- FUNCIONES -----
+    });
+    
+    // ----- FUNCIONES -----
     Route::prefix('funciones')->middleware('auth')->group(function () {
         // Todos los autenticados (empleados y admin) pueden VER funciones
         Route::get('/', [FuncionController::class, 'index'])->name('funciones.index');
@@ -98,8 +105,8 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{funcione}', [FuncionController::class, 'destroy'])->name('funciones.ajax.destroy');
         });
     });
-        
-        // ----- TICKETS (Todos los autenticados) -----
+    
+    // ----- TICKETS (Todos los autenticados) -----
     Route::prefix('tickets')->group(function () {
         Route::get('/', [TicketController::class, 'index'])->name('tickets.index');
         Route::get('/create', [TicketController::class, 'create'])->name('tickets.create');
@@ -169,13 +176,11 @@ Route::middleware('auth')->group(function () {
         });
 
         // Ruta temporal para logout GET (solo para pruebas - después quítala)
-Route::get('/salir', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/login');
-})->name('salir');
-        
+        Route::get('/salir', function (Request $request) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect('/login');
+        })->name('salir');
     }); // Fin de rutas AJAX
-    
 }); // Fin de middleware auth

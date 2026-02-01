@@ -7,98 +7,94 @@ use App\Models\Asientos;
 use App\Models\Funciones;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
     /**
-     * Constructor - Todos los autenticados pueden manejar tickets
+     * Todos los autenticados (admin y empleado)
      */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-    
+
     // ========== VISTAS BLADE ==========
-    
-    /**
-     * Mostrar vista principal de tickets
-     */
+
     public function index()
     {
         return view('tickets.index');
     }
-    
-    /**
-     * Mostrar formulario para crear nuevo ticket
-     */
+
     public function create()
     {
         return view('tickets.create');
     }
-    
-    /**
-     * Mostrar formulario para editar ticket
-     */
+
     public function edit(Ticket $ticket)
     {
         return view('tickets.edit', compact('ticket'));
     }
-    
-    /**
-     * Mostrar detalles de ticket (vista)
-     */
+
     public function show(Ticket $ticket)
     {
         return view('tickets.show', compact('ticket'));
     }
-    
-    // ========== API PARA AJAX ==========
-    
+
+    // ========== API AJAX ==========
+
     /**
-     * Obtener todos los tickets (AJAX)
+     * Listar tickets
      */
     public function ajaxIndex(Request $request): JsonResponse
     {
-        $query = Ticket::with(['funcion.pelicula', 'funcion.sala', 'asiento', 'usuario']);
+        $query = Ticket::with([
+            'funcion.pelicula',
+            'funcion.sala',
+            'asiento',
+            'usuario'
+        ]);
 
-        if ($request->has('funcion_id')) {
+        if ($request->filled('funcion_id')) {
             $query->where('funcion_id', $request->funcion_id);
         }
-        if ($request->has('usuario_id')) {
+
+        if ($request->filled('usuario_id')) {
             $query->where('usuario_id', $request->usuario_id);
         }
 
-        $tickets = $query->get();
-
-        return response()->json($tickets);
+        return response()->json($query->get());
     }
 
     /**
-     * Mostrar un ticket específico (AJAX)
+     * Ver un ticket
      */
     public function ajaxShow(Ticket $ticket): JsonResponse
     {
-        $ticket->load(['funcion.pelicula', 'funcion.sala', 'asiento', 'usuario']);
+        $ticket->load([
+            'funcion.pelicula',
+            'funcion.sala',
+            'asiento',
+            'usuario'
+        ]);
+
         return response()->json($ticket);
     }
 
     /**
-     * Crear nuevo ticket (AJAX)
+     * CREAR TICKET (EMPLEADO O ADMIN)
+     * POST /ajax/tickets
      */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'funcion_id'    => 'required|exists:funciones,id',
-            'asiento_id'    => 'required|exists:asientos,id',
-            'precio'        => 'required|numeric|min:0',
-            'estado'        => 'sometimes|in:vendido,reservado,reembolsado',
-            'metodo_pago'   => 'nullable|string|in:efectivo,tarjeta,transferencia',
-            'user_id'       => 'nullable|exists:users,id',
+            'funcion_id'  => 'required|exists:funciones,id',
+            'asiento_id'  => 'required|exists:asientos,id',
+            'precio'      => 'required|numeric|min:0',
+            'estado'      => 'sometimes|in:vendido,reservado,reembolsado',
+            'metodo_pago' => 'nullable|in:efectivo,tarjeta,transferencia',
         ]);
 
         $asiento = Asientos::findOrFail($validated['asiento_id']);
         $funcion = Funciones::findOrFail($validated['funcion_id']);
 
+        // Validar que el asiento sea de la sala correcta
         if ($asiento->sala_id !== $funcion->sala_id) {
             return response()->json([
                 'success' => false,
@@ -106,6 +102,7 @@ class TicketController extends Controller
             ], 422);
         }
 
+        // Validar disponibilidad
         if ($asiento->estado !== 'disponible') {
             return response()->json([
                 'success' => false,
@@ -114,19 +111,37 @@ class TicketController extends Controller
         }
 
         try {
-            $ticket = Ticket::create($validated);
-            // Cambiar estado del asiento
-            $asiento->update(['estado' => 'ocupado']);
+            $ticket = Ticket::create([
+                'funcion_id'  => $validated['funcion_id'],
+                'asiento_id'  => $validated['asiento_id'],
+                'precio'      => $validated['precio'],
+                'estado'      => $validated['estado'] ?? 'vendido',
+                'metodo_pago' => $validated['metodo_pago'] ?? null,
+                'usuario_id'     => Auth::id(), // 🔥 EMPLEADO AUTENTICADO
+            ]);
+
+            // Ocupar asiento
+            $asiento->update([
+                'estado' => 'ocupado'
+            ]);
+
         } catch (\Exception $e) {
             \Log::error('Error al crear ticket: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno al crear ticket',
                 'error' => $e->getMessage()
             ], 500);
+            
         }
 
-        $ticket->load(['funcion.pelicula', 'funcion.sala', 'asiento', 'usuario']);
+        $ticket->load([
+            'funcion.pelicula',
+            'funcion.sala',
+            'asiento',
+            'usuario'
+        ]);
 
         return response()->json([
             'success' => true,
@@ -136,23 +151,34 @@ class TicketController extends Controller
     }
 
     /**
-     * Actualizar ticket (AJAX)
+     * ACTUALIZAR TICKET
      */
     public function update(Request $request, Ticket $ticket): JsonResponse
     {
         $validated = $request->validate([
-            'estado'      => 'sometimes|required|in:vendido,reservado,reembolsado',
-            'metodo_pago' => 'sometimes|nullable|string|in:efectivo,tarjeta,transferencia',
+            'estado'      => 'sometimes|in:vendido,reservado,reembolsado',
+            'metodo_pago' => 'sometimes|nullable|in:efectivo,tarjeta,transferencia',
             'precio'      => 'sometimes|numeric|min:0',
         ]);
 
-        // Si se reembolsa, liberar el asiento
-        if (isset($validated['estado']) && $validated['estado'] === 'reembolsado') {
-            $ticket->asiento->update(['estado' => 'disponible']);
+        // Si se reembolsa, liberar asiento
+        if (
+            isset($validated['estado']) &&
+            $validated['estado'] === 'reembolsado'
+        ) {
+            $ticket->asiento->update([
+                'estado' => 'disponible'
+            ]);
         }
 
         $ticket->update($validated);
-        $ticket->load(['funcion.pelicula', 'funcion.sala', 'asiento', 'usuario']);
+
+        $ticket->load([
+            'funcion.pelicula',
+            'funcion.sala',
+            'asiento',
+            'usuario'
+        ]);
 
         return response()->json([
             'success' => true,
@@ -162,17 +188,18 @@ class TicketController extends Controller
     }
 
     /**
-     * Eliminar ticket (AJAX)
+     * ELIMINAR TICKET
      */
     public function destroy(Ticket $ticket): JsonResponse
     {
-        // Liberar asiento si se elimina
         if ($ticket->estado !== 'reembolsado') {
-            $ticket->asiento->update(['estado' => 'disponible']);
+            $ticket->asiento->update([
+                'estado' => 'disponible'
+            ]);
         }
 
         $ticket->delete();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Ticket eliminado exitosamente'

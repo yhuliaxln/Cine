@@ -83,47 +83,51 @@ $(document).ready(function() {
 
                 let html = '';
 
-                // Si no es array o está vacío
                 if (!Array.isArray(response) || response.length === 0) {
                     html = '<div class="text-center py-5 alert alert-info">No hay funciones disponibles en este momento.</div>';
                 } else {
                     response.forEach(function(funcion) {
-                        // Poster seguro
-                        let poster = 'https://via.placeholder.com/300x450?text=Sin+Poster';
+                        // Poster corregido (usamos placehold.co que es más confiable)
+                        let poster = 'https://placehold.co/160x210?text=Sin+Poster';
                         if (funcion.pelicula && funcion.pelicula.url_poster) {
-                            poster = '{{ asset("") }}' + funcion.pelicula.url_poster;
+                            poster = '{{ asset("storage") }}' + funcion.pelicula.url_poster.replace(/^\/storage/, '');
                         }
 
-                        // Título seguro
                         let titulo = funcion.pelicula?.titulo || 'Sin título';
-
-                        // Sala segura
                         let sala = funcion.sala?.nombre || 'Sin sala';
                         let tipoSala = funcion.sala?.tipo ? ' • ' + funcion.sala.tipo : '';
-
-                        // Fecha segura
                         let fechaHora = funcion.fecha_hora_inicio 
                             ? new Date(funcion.fecha_hora_inicio).toLocaleString('es-CO', { 
                                 dateStyle: 'medium', timeStyle: 'short' 
                               }) 
                             : 'Sin fecha';
-
-                        // Precio seguro
                         let precio = parseFloat(funcion.precio || 0).toLocaleString('es-CO', {
                             style: 'currency', currency: 'COP'
                         });
 
                         html += `
-                            <div class="card h-100 shadow-sm">
-                                <img src="${poster}" class="card-img-top" alt="${titulo}" style="height: 350px; object-fit: cover;">
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title">${titulo}</h5>
-                                    <p class="card-text text-muted small mb-1">${sala}${tipoSala}</p>
-                                    <p class="card-text mb-2"><strong>Fecha/Hora:</strong> ${fechaHora}</p>
-                                    <p class="card-text mb-3"><strong>Precio:</strong> ${precio}</p>
-                                    <div class="mt-auto">
-                                        <button class="btn btn-primary w-100 vender-btn" data-funcion-id="${funcion.id}">
-                                            Vender Ticket
+                            <div style="border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; background-color: #fff; margin-bottom: 24px;">
+                                <div style="display: flex; gap: 32px; align-items: flex-start;">
+                                    <img src="${poster}" 
+                                         alt="${titulo}" 
+                                         style="width: 160px; height: 210px; object-fit: cover; border-radius: 6px;">
+                                    <div style="flex: 1;">
+                                        <h2 style="margin: 0 0 12px 0; font-size: 35px; font-weight: 700;">
+                                            ${titulo}
+                                        </h2>
+                                        <p style="margin: 0 0 6px 0; font-size: 20px;">
+                                            <strong>Sala:</strong> ${sala}${tipoSala}
+                                        </p>
+                                        <p style="margin: 0 0 6px 0; font-size: 20px;">
+                                            <strong>Hora:</strong> ${fechaHora}
+                                        </p>
+                                        <p style="margin: 0 0 6px 0; font-size: 20px;">
+                                            <strong>Precio:</strong> ${precio}
+                                        </p>
+                                        <button class="vender-btn btn btn-primary" 
+                                                data-funcion-id="${funcion.id}"
+                                                style="margin-top: 8px; padding: 12px 24px; font-size: 18px; font-weight: 600;">
+                                            🎟️ Vender ticket
                                         </button>
                                     </div>
                                 </div>
@@ -131,34 +135,39 @@ $(document).ready(function() {
                     });
                 }
 
-                console.log('HTML generado con éxito. Longitud:', html.length);
+                console.log('HTML generado. Funciones renderizadas:', response.length);
                 $('#funciones-grid').html(html);
             },
             error: function(xhr, status, error) {
-                console.error('Error en AJAX:', status, error);
-                console.log('Respuesta del servidor:', xhr.responseText);
-
-                $('#funciones-grid').html(`
-                    <div class="alert alert-danger text-center">
-                        Error al cargar la cartelera<br>
-                        <small>${status} - ${error}</small>
-                    </div>
-                `);
+                console.error('Error AJAX:', status, error);
+                $('#funciones-grid').html('<div class="alert alert-danger text-center">Error al cargar la cartelera</div>');
             }
         });
     }
 
-    // Abrir modal al vender
+    // Abrir modal y cargar formulario de venta
     $(document).on('click', '.vender-btn', function() {
-        const id = $(this).data('funcion-id');
-        console.log('Vender ticket para función ID:', id);
+        const funcionId = $(this).data('funcion-id');
+        console.log('Cargando formulario de venta para función:', funcionId);
 
         $('#ventaModalBody').html(`
             <div class="text-center py-5">
-                <h4>Venta de ticket para función #${id}</h4>
-                <p>Formulario completo se cargará aquí...</p>
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Cargando formulario...</p>
             </div>
         `);
+
+        $.ajax({
+            url: '{{ url("/ventas/ticket") }}/' + funcionId,
+            method: 'GET',
+            success: function(html) {
+                $('#ventaModalBody').html(html);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error cargando formulario:', status, error);
+                $('#ventaModalBody').html('<div class="alert alert-danger">Error al cargar el formulario de venta (404 - ruta no encontrada)</div>');
+            }
+        });
 
         $('#ventaModal').modal('show');
     });

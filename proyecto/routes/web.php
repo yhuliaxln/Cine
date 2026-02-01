@@ -158,6 +158,14 @@ Route::middleware('auth')->group(function () {
             Route::put('/{ticket}', [TicketController::class, 'update'])->name('tickets.ajax.update');
             Route::delete('/{ticket}', [TicketController::class, 'destroy'])->name('tickets.ajax.destroy');
         });
+
+        // Ruta temporal para logout GET (solo para pruebas - después quítala)
+Route::get('/salir', function (Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/login');
+})->name('salir');
         
     }); // Fin de rutas AJAX
     

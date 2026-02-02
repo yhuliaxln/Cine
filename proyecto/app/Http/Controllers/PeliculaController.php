@@ -35,9 +35,13 @@ class PeliculaController extends Controller
      * Mostrar formulario para editar película
      */
     public function edit(Pelicula $pelicula)
-    {
-        return view('peliculas.edit', compact('pelicula'));
-    }
+{
+    return view('peliculas.partials.pelicula-modal', [
+    'modalType' => 'editar',
+    'peliculaEditando' => $pelicula,
+]);
+}
+
     
     /**
      * Mostrar detalles de película (vista)

@@ -21,6 +21,32 @@
         </div>
     </header>
 
+    <!-- NAVBAR (debajo del header, como barra horizontal) -->
+    <nav style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="max-width: 1280px; margin: 0 auto; display: flex; gap: 8px; padding: 0 32px;">
+            <a href="{{ url('/dashboard') }}" 
+               style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500; {{ request()->is('dashboard') ? 'background-color: #eff6ff; color: #1e40af; font-weight: 600;' : '' }}">
+                🏠 Inicio
+            </a>
+            <a href="{{ url('/peliculas') }}" 
+               style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500; {{ request()->is('peliculas*') ? 'background-color: #eff6ff; color: #1e40af; font-weight: 600;' : '' }}">
+                🎬 Películas
+            </a>
+            <a href="{{ route('salas.index') }}" 
+               style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500; {{ request()->is('salas*') ? 'background-color: #eff6ff; color: #1e40af; font-weight: 600;' : '' }}">
+                🎭 Salas
+            </a>
+            <a href="#" 
+               style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500;">
+                👥 Usuarios
+            </a>
+            <a href="#" 
+               style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500;">
+                📊 Reportes
+            </a>
+        </div>
+    </nav>
+
     <!-- CONTENIDO PRINCIPAL -->
     <main style="max-width: 1280px; margin: 0 auto; padding: 32px;">
         <div style="background-color: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
@@ -171,63 +197,63 @@ $(document).ready(function() {
     }
 
     // Botón Nueva Función (abre modal)
-$('#nuevaFuncionBtn').on('click', function() {
-    console.log('Abriendo modal para crear nueva función');
-
-    $('#crearFuncionBody').html(`
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Cargando formulario...</p>
-        </div>
-    `);
-
-    // Cargar películas y salas en paralelo
-    Promise.all([
-        $.get('{{ route("peliculas.ajax.index") }}'),
-        $.get('{{ route("salas.ajax.index") }}')
-    ]).then(([peliculas, salas]) => {
-        let peliOptions = '<option value="">Selecciona película</option>';
-        peliculas.forEach(p => {
-            peliOptions += `<option value="${p.id}">${p.titulo}</option>`;
-        });
-
-        let salaOptions = '<option value="">Selecciona sala</option>';
-        salas.forEach(s => {
-            salaOptions += `<option value="${s.id}">${s.nombre} (${s.tipo})</option>`;
-        });
+    $('#nuevaFuncionBtn').on('click', function() {
+        console.log('Abriendo modal para crear nueva función');
 
         $('#crearFuncionBody').html(`
-            <form id="crearFuncionForm">
-                <div class="mb-3">
-                    <label class="form-label">Película</label>
-                    <select class="form-select" name="pelicula_id" required>
-                        ${peliOptions}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Sala</label>
-                    <select class="form-select" name="sala_id" required>
-                        ${salaOptions}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Fecha y Hora de inicio</label>
-                    <input type="datetime-local" class="form-control" name="fecha_hora_inicio" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Precio</label>
-                    <input type="number" class="form-control" name="precio" step="0.01" min="0" required>
-                </div>
-                <button type="submit" class="btn btn-success w-100">Crear Función</button>
-            </form>
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Cargando formulario...</p>
+            </div>
         `);
-    }).catch(err => {
-        console.error('Error cargando datos:', err);
-        $('#crearFuncionBody').html('<div class="alert alert-danger">Error al cargar películas/salas</div>');
-    });
 
-    $('#crearFuncionModal').modal('show');
-});
+        // Cargar películas y salas en paralelo
+        Promise.all([
+            $.get('{{ route("peliculas.ajax.index") }}'),
+            $.get('{{ route("salas.ajax.index") }}')
+        ]).then(([peliculas, salas]) => {
+            let peliOptions = '<option value="">Selecciona película</option>';
+            peliculas.forEach(p => {
+                peliOptions += `<option value="${p.id}">${p.titulo}</option>`;
+            });
+
+            let salaOptions = '<option value="">Selecciona sala</option>';
+            salas.forEach(s => {
+                salaOptions += `<option value="${s.id}">${s.nombre} (${s.tipo})</option>`;
+            });
+
+            $('#crearFuncionBody').html(`
+                <form id="crearFuncionForm">
+                    <div class="mb-3">
+                        <label class="form-label">Película</label>
+                        <select class="form-select" name="pelicula_id" required>
+                            ${peliOptions}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sala</label>
+                        <select class="form-select" name="sala_id" required>
+                            ${salaOptions}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha y Hora de inicio</label>
+                        <input type="datetime-local" class="form-control" name="fecha_hora_inicio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio</label>
+                        <input type="number" class="form-control" name="precio" step="0.01" min="0" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Crear Función</button>
+                </form>
+            `);
+        }).catch(err => {
+            console.error('Error cargando datos:', err);
+            $('#crearFuncionBody').html('<div class="alert alert-danger">Error al cargar películas/salas</div>');
+        });
+
+        $('#crearFuncionModal').modal('show');
+    });
 
     // Vender ticket (igual que en empleado)
     $(document).on('click', '.vender-btn', function() {

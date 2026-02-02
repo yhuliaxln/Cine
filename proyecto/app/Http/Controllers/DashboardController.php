@@ -21,6 +21,8 @@ class DashboardController extends Controller
             return view('dashboard-empleado');
         }
 
+        return view('dashboard-admin');
+
         // Si no es empleado → asumimos admin (o rol desconocido)
         $stats = [
             'total_peliculas'     => Pelicula::count(),

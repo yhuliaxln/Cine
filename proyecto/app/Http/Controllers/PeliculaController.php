@@ -12,11 +12,6 @@ class PeliculaController extends Controller
     /**
      * Constructor - Aplicar middleware de admin para escritura
      */
-    public function __construct()
-    {
-        // Solo admin puede crear/editar/eliminar
-        $this->middleware('role:admin')->except(['index', 'ajaxIndex', 'show', 'ajaxShow']);
-    }
     
     // ========== VISTAS BLADE ==========
     

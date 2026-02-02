@@ -11,11 +11,6 @@ class SalaController extends Controller
     /**
      * Constructor - Solo admin puede modificar salas
      */
-    public function __construct()
-    {
-        $this->middleware('role:admin')->except(['index', 'ajaxIndex', 'show', 'ajaxShow']);
-    }
-    
     // ========== VISTAS BLADE ==========
     
     /**

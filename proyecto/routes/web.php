@@ -50,8 +50,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // RUTA NUEVA PARA EL FORMULARIO DE VENTA (esto soluciona el 404)
-    Route::get('/ventas/ticket/{id}', function ($id) {
-    $funcion = Funciones::with(['pelicula', 'sala'])->findOrFail($id);
+    Route::get('/ventas/ticket/{funcion}', function (Funciones $funcion) {
+    $funcion->load(['pelicula', 'sala']);
     return view('ventas.venta-ticket', compact('funcion'));
 })->name('ventas.ticket');
     

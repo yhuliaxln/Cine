@@ -69,6 +69,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [SalaController::class, 'index'])->name('salas.index');
         Route::get('/create', [SalaController::class, 'create'])->name('salas.create');
         Route::get('/{sala}/edit', [SalaController::class, 'edit'])->name('salas.edit');
+        
+        // Gestión de asientos
+        Route::get('/{sala}/gestion-asientos', [SalaController::class, 'gestionAsientos'])
+            ->name('salas.gestion-asientos');
+        
+        // Crear asiento - IMPORTANTE: usa 'asiento/create' en singular
+        Route::get('/{sala}/asiento/create', [SalaController::class, 'crearAsientoForm'])
+            ->name('salas.asiento.create');
+        
+        // Editar asiento  
+        Route::get('/{sala}/asiento/{asiento}/edit', [SalaController::class, 'editAsientoModal'])
+            ->name('salas.asiento.edit');
     });
     
     // ----- ASIENTOS (Solo admin para escritura) -----

@@ -32,7 +32,7 @@
                style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500; {{ request()->is('peliculas*') ? 'background-color: #eff6ff; color: #1e40af; font-weight: 600;' : '' }}">
                 🎬 Películas
             </a>
-            <a href="{{ route('salas.index') }}" 
+            <a href="{{ url('/salas') }}" 
                style="padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #4b5563; font-weight: 500; {{ request()->is('salas*') ? 'background-color: #eff6ff; color: #1e40af; font-weight: 600;' : '' }}">
                 🎭 Salas
             </a>

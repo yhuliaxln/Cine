@@ -1,3 +1,4 @@
+<!-- resources/views/peliculas/create.blade.php -->
 @extends('layouts.app')
 
 @section('title', 'Crear Nueva Película')

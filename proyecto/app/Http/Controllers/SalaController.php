@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sala;
+use App\Models\Asiento; // AÑADE ESTA LÍNEA
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -22,27 +23,72 @@ class SalaController extends Controller
     }
     
     /**
-     * Mostrar formulario para crear nueva sala
+     * Mostrar formulario para crear nueva sala (modal partial)
      */
     public function create()
     {
-        return view('salas.create');
+        return view('salas.partial.sala-form', [
+            'modalType' => 'crear',
+            'sala' => null
+        ]);
     }
     
     /**
-     * Mostrar formulario para editar sala
+     * Mostrar formulario para editar sala (modal partial)
      */
     public function edit(Sala $sala)
     {
-        return view('salas.edit', compact('sala'));
+        return view('salas.partial.sala-form', [
+            'modalType' => 'editar',
+            'sala' => $sala
+        ]);
     }
     
     /**
-     * Mostrar detalles de sala (vista)
+     * Mostrar detalles de sala (vista) - se mantiene aunque no lo uses ahora
      */
     public function show(Sala $sala)
     {
         return view('salas.show', compact('sala'));
+    }
+
+    /**
+     * Mostrar el modal / vista parcial de gestión de asientos
+     */
+    public function gestionAsientos(Sala $sala)
+    {
+        try {
+            $asientos = $sala->asientos()
+                            ->orderBy('fila')
+                            ->orderBy('numero')
+                            ->get();
+
+            return view('salas.partial.gestion-asientos', compact('sala', 'asientos'));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function crearAsientoForm(Sala $sala)
+    {
+        return view('salas.partial.asiento-form', [
+            'sala'    => $sala,
+            'modo'    => 'crear',
+            'asiento' => null,
+        ]);
+    }
+
+    public function editAsientoModal(Sala $sala, Asiento $asiento)
+    {
+        if ($asiento->sala_id !== $sala->id) {
+            abort(403, 'El asiento no pertenece a esta sala');
+        }
+
+        return view('salas.partial.asiento-form', [
+            'sala'    => $sala,
+            'modo'    => 'editar',
+            'asiento' => $asiento,
+        ]);
     }
     
     // ========== API PARA AJAX ==========

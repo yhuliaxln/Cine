@@ -1,3 +1,4 @@
+<!-- resources/views/peliculas/partial/pelicula-modal.blade.php -->
 <style>
     .custom-modal-overlay {
         position: fixed;

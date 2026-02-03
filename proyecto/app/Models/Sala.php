@@ -19,7 +19,7 @@ class Sala extends Model
     // Una sala tiene muchos asientos
     public function asientos()
     {
-        return $this->hasMany(Asiento::class);
+        return $this->hasMany(asientos::class);
     }
 
     // Una sala tiene muchas funciones
